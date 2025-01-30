@@ -1,0 +1,126 @@
+---
+title: "HW 1. Data visualizations"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error=TRUE)
+```
+
+## 1. Частотность и фонетика
+
+### 1.1 Загрузка данных
+```{r example}
+library(tidyverse)
+devtools::install_github("ropensci/skimr")
+library(skimr)
+
+dur_word_freq <- read_csv('https://raw.githubusercontent.com/LingData2019/LingData2020/master/data/dur_word_frequency.csv')
+
+# Изучаем данные:
+summary(dur_word_freq)
+glimpse(dur_word_freq)
+skim(dur_word_freq)
+
+```
+
+### 1.2 Типы данных
+
+```
+В столбцах представлены данные типа строка (столбцы Lemma, Participant, # Cond, Exponent); число (double, с десятичным разделителем)
+```
+
+### 1.3 Визуализации ggplot: график плотности (density plot)
+```{r hist0}
+dur_word_freq |>
+ggplot(aes(x = LogDurationA, group = Cond)) +
+geom_density()
+```
+
+### 1.4 Добавьте в график тему theme_classic() и полупрозрачность (alpha = 0.5, указывается в геоме плотности).
+```{r hist1}
+dur_word_freq |>
+ggplot(aes(x = LogDurationA, group = Cond)) +
+theme_classic() +
+geom_density(alpha=.5)
+```
+
+
+### 1.5 Постройте график плотности распределения длины всего слова (переменная `LogDurationW`) для всех данных (без деления по условиям).
+```{r hist2}
+dur_word_freq |>
+ggplot(aes(x = LogDurationW)) +
+theme_classic() +
+geom_density(alpha=.5)
+```
+
+
+### 1.6 Боксплот (базовый R)
+```{r boxplot_base}
+boxplot(LogDurationA ~ Cond, data=dur_word_freq)
+```
+
+### 1.7
+```
+Медианное значение длительности сегментов при медленном чтении немного выше, чем при быстром (непонятно, насколько статистически значимо данное различие). Также друг от друга отличаются первый и третий квартиль при обоих условиях. Из этого можно сделать вывод, что длительность звучания сегментов при медленном чтении в среднем выше, чем при быстром чтении. Также для условия быстрого чтения можно отметить большее в сравнении с медленным условием количество выборосов, что может быть обусловлено специфичностью условия с быстрым чтением.
+```
+
+### 1.8. Боксплот в ggplot2 (с дополнительным изменением цвета)
+```{r boxplot1}
+library(RColorBrewer)
+dur_word_freq |> ggplot(aes(x=Cond, y=LogDurationW)) +
+geom_boxplot(aes(fill=as.factor(Cond)), show.legend=FALSE) +
+labs(x = 'Condition', y='Log-transformed word duration') +
+theme_classic() +
+scale_fill_brewer(palette='Dark2')
+# задала условие не в базовой эстетике ggplot, чтобы получилась заливка другим 
+# цветом; альтернативный код без доп. задания, где все три аргумента заданы
+# в базовой эстетике, ниже; легенда убрана
+dur_word_freq |> ggplot(aes(x=Cond, y=LogDurationW, fill=Cond)) +
+geom_boxplot() +
+labs(x='Condition', y='Log-transformed word duration') +
+theme_classic() +
+theme(legend.position='none')
+```
+
+### 1.9 Скрипичный плот в ggplot2
+```{r violin}
+dur_word_freq |> ggplot(aes(x=Cond, y=LogDurationA, fill=Cond)) +
+geom_violin() +
+labs(x = 'Condition', y='Log-transformed segment duration') +
+theme_classic() +
+theme(legend.position='none')
+```
+
+
+### 1.10 Jitter
+```{r violin2}
+dur_word_freq |> ggplot(aes(x=Cond, y=LogDurationA, fill=Cond)) +
+geom_violin() +
+geom_jitter() +
+labs(x = 'Condition', y='Log-transformed segment duration') +
+theme_classic() +
+theme(legend.position='none')
+```
+
+
+### 1.11. Скаттерплот в ggplot2; сделала фон линии прозначным
+```{r scatterplot}
+dur_word_freq |> ggplot(aes(x=LogDurationA, y=LogDurationW)) +
+geom_point(alpha=.3) +
+geom_smooth(method='lm', alpha=0) +
+labs(x='Log-transformed segment duration',
+y='Log-transformed word duration') +
+theme_classic()
+
+# ну и так как я хочу поразвлекаться, дадим точкам разные цвета в зависимости
+# от условия эксперимента, а также посмотрии на обе линии тренда
+dur_word_freq |> ggplot(aes(x=LogDurationA, y=LogDurationW, color=Cond)) +
+geom_point(alpha=.3) +
+geom_smooth(method='lm', alpha=0) +
+labs(x='Log-transformed segment duration',
+y='Log-transformed word duration') +
+theme_classic()
+```
